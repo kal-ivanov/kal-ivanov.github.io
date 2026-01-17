@@ -27,9 +27,13 @@
     .status-banner { font-weight: 700; padding: 10px 12px; border: 2px solid; border-radius: 8px; margin-bottom: 10px; }
     .status-success { color: #065f46; border-color: #10b981; background: #ecfdf5; }
     .status-fail { color: #7f1d1d; border-color: #ef4444; background: #fef2f2; }
+    /* Explicit styling when applied to option labels */
+    .option.status-success { background: #ecfdf5; border: 1px solid #10b981; border-radius: 8px; }
+    .option.status-fail { background: #fef2f2; border: 1px solid #ef4444; border-radius: 8px; }
     .category-block { background: #f3f4f6; border: 1px solid #e5e7eb; padding: 12px; border-radius: 8px; margin-bottom: 16px; }
     .category-header { color: #6b7280; font-weight: 600; margin: 0 0 8px; }
     .timer { position: sticky; top: 0; z-index: 50; }
+    .option .check { margin-left: 6px; color: #6366f1; font-weight: 700; }
     footer small { display: block; text-align: center; opacity: 0.75; }
   </style>
 </head>
@@ -6298,6 +6302,30 @@
       });
       const points = correct * 5;
       const passed = points >= 100 || correct >= 20;
+      // Маркиране на верните/грешните отговори и поставяне на отметка на верния вариант
+      state.selectedQuestions.forEach((q, i) => {
+        const inputs = Array.from(document.querySelectorAll(`input[name="q_${i}"]`));
+        const selected = document.querySelector(`input[name="q_${i}"]:checked`);
+        inputs.forEach((input, k) => {
+          const label = input.parentElement;
+          // Премахване на евентуални предишни индикатори
+          label.classList.remove('status-success', 'status-fail');
+          const existingCheck = label.querySelector('.check');
+          if (existingCheck) existingCheck.remove();
+          // Отметка за верния отговор
+          if (k === q.correctIndex) {
+            const chk = document.createElement('span');
+            chk.className = 'check';
+            chk.textContent = '✓';
+            label.appendChild(chk);
+          }
+          // Оцветяване на избрания отговор
+          if (selected && selected === input) {
+            if (k === q.correctIndex) label.classList.add('status-success');
+            else label.classList.add('status-fail');
+          }
+        });
+      });
       resultsContainer.innerHTML = `
         <div class="results-summary">
           <div class="status-banner ${passed ? 'status-success' : 'status-fail'}">${passed ? 'Успешно издържан (мин. 100 точки / 20 верни)' : 'Неуспешно (мин. 100 точки / 20 верни)'}${auto ? ' (времето изтече)' : ''}</div>
